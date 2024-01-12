@@ -1,11 +1,11 @@
 const http = require('http');
 const { randomUUID } = require('crypto');
+const users = [];
 
 const server = http.createServer((request, response) => {
-	const users = [];
 	if(request.url === "/"){
 		if(request.method === "GET"){
-			return response.end('Chegamos ao usuário');
+			return response.end(JSON.stringify(users));
 		}
 	}
 
@@ -22,6 +22,24 @@ const server = http.createServer((request, response) => {
 			}).on("end", () => {
 				return response.end(JSON.stringify(users));
 			});
+		}
+	}
+
+	if(request.url.startsWith("/atualiza-user")){
+		if(request.method === "PUT"){
+			const url = request.url;
+			const splitUrl = url.split('/');
+			const idUser = splitUrl[2];
+			const userIndex = users.findIndex(user => user.id === idUser);
+			request.on("data", (data) => {
+				const dataUser = JSON.parse(data);
+				users[userIndex] = {
+					id: idUser,
+					...dataUser
+				}
+			}).on("end", ()=>{
+				return response.end(JSON.stringify(users));
+			})
 		}
 	}
 });
